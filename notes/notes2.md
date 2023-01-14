@@ -1,4 +1,5 @@
 
+# Paşluk
 
 İyi kötü mimariyi çıkartmayı başardım.
 
@@ -44,11 +45,14 @@ Bu kısım net olmalı.
    bunu ekleriz. `{selection_method}: NaturalSelection` gibisine.
    
    3. Selection da yaptığımıza göre artık bunları save etmek kalıyor. Save kısmında önemli olan bir nevi metadata tutmak.
-   modeli, hatta xray her çalıştığında unique bir id çıkartsın, Hangi layerdan, mümkünse hangi batchde, original_size, uzatılması gerekebilir bunun
-   bunlarla birlikte veya bunlar ayrıca bir dosyada tutulmalı.
+   modeli, hatta xray her çalıştığında unique bir id çıkartsın, Hangi layerdan, ne tip output, mümkünse hangi batchde,
+   original_size, uzatılması gerekebilir bunun bunlarla birlikte kaydedilmeli veya bunlar için ayrıca bir dosyada 
+   tutulmalı.
 
 
 5. Son olarak bunu görselleştirmek lazım. Graph çekilir çekilmez bakılabilir olmalı. Kullanıcı istediği zaman 
 tutup şu layerın şu çıktısını hatta şu batchdeki çıktısını getir diyebilmeli. Hatta hangi layerdan ne çıktı 
 kaydetmiştik hangi batchlerde kayıt almıştık falan diyebilmeli
+
+
 

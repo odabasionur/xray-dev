@@ -9,12 +9,13 @@ from torch.utils.hooks import RemovableHandle
 
 
 class DataModule:
-	def __init__(self, module, input_size, output_size, name=None, parent=None):
+	def __init__(self, module, input_size, output_size, weight_size=None, name=None, parent=None):
 		self.module_obj: nn.Module = module
 		self.name = name
 		self.module_type = None
 		self.input_size = input_size
 		self.output_size = output_size
+		self.weight_size = weight_size
 		self.parent: Optional[nn.Module] = parent
 		self.child: Optional[nn.Module] = None
 		self.root = True if self.parent is None else False
@@ -47,6 +48,7 @@ class DataModule:
 
 	def __repr__(self):
 		return f'{self.name}'
+
 
 
 class TraceArchitecture:
@@ -169,9 +171,16 @@ class TraceArchitecture:
 					dict_module_info = OrderedDict()
 					module_common_name = module.__class__.__name__
 					module_count = len(self.arr_modules[self.arr_modules == module_common_name])
+					module_params = list(module.parameters())
+					if len(module_params) > 0:
+						weight_size = module_params[0].size()
+					else:
+						weight_size = torch.Size([])
+
 					dict_module_info['module'] = module
 					dict_module_info['input_size'] = input_[0].size()
-					dict_module_info['output_size'] = output[0].size()
+					dict_module_info['output_size'] = output.size()
+					dict_module_info['weight_size'] = weight_size
 					self.dict_forward_draft[f'{module_common_name}-{module_count}'] = dict_module_info.copy()
 					self.arr_modules = np.append(self.arr_modules, module_common_name)
 
@@ -197,8 +206,10 @@ class TraceArchitecture:
 			module_name = key
 			input_size = dict_of_module.get('input_size')
 			output_size = dict_of_module.get('output_size')
+			weight_size = dict_of_module.get('weight_size')
 			current_module = DataModule(
-				module=module, input_size=input_size, output_size=output_size, name=module_name, parent=prev_module)
+				module=module, input_size=input_size, output_size=output_size,
+				name=module_name, weight_size=weight_size, parent=prev_module)
 			if prev_module:
 				self._add_node_if_not_exist(self.dict_graph_arc, prev_module)
 				self.dict_graph_arc[prev_module].append(current_module)

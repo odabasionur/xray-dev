@@ -48,7 +48,8 @@ if __name__ == '__main__':
 	xray = Xray(model=model, input_tensor=x)
 	xray.initialize()
 
-	xray.take_graph(x=x)
+	xray.take_graph(X=x, batch_num=0)
+	xray.take_graph(X=x, batch_num=1)
 
 	print()
 	# for key in dict_graph_of_arc.keys():

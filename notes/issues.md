@@ -20,5 +20,10 @@ gibi tek kare içinde birleştirerek paylaş
 
 9. selectorlerde random seedler boşta
 
-10. 
+10. hepsine hook atıyoruz, sonra hepsinde tek tek selection yapıyoruz tek tek save ediyoruz. Hiç mantıklı değil ki.
+Hiç mantıklı değil. Datalar büyükse nolcak. bir hook atıldığı anda işlemlerin yapılması sonra uçurulması lazımdı.
+
+11. Save sistemini bi elden geçir ya bişey olmadı sanki. Gerçi neresi tam oldu ki
+
+12. 
 

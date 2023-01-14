@@ -1,10 +1,13 @@
+import uuid
 from collections import OrderedDict
-
+from typing import Union
 import numpy as np
 import torch
 from torch import nn
 from torchxray.inspect import TraceArchitecture
 from torchxray.selection import map_module_type_selector
+from torchxray.file_manager import FileManager
+
 
 class Xray:
 	def __init__(
@@ -16,6 +19,8 @@ class Xray:
 			layer_list_to_inspect: list[str] = None,
 			take_graph_of_activations: bool = True,
 			take_graph_of_grad: bool = False,
+			dont_create_folder: bool = False,
+			output_directory: str = r'./xray_outputs/',
 			verbose: int = 0,
 	):
 		"""
@@ -38,6 +43,8 @@ class Xray:
 		self.input_size = None
 		self.output = output
 		self.validate_input_or_output(input_tensor=input_tensor, input_size=input_size, output=output)
+		self.dont_create_folder = dont_create_folder
+		self.xray_id = uuid.uuid4().__str__().split('-')[-1]
 
 		self.user_marked_layers_to_inspect = layer_list_to_inspect  # Defined by user
 		self.layers_to_inspect = []  # ['conv1', 'conv2', 'fc1']		# Defined by user if possible else by TraceArchitecture
@@ -49,6 +56,7 @@ class Xray:
 			input_size=input_size,
 			output=self.output
 		)
+		self.fm = FileManager(main_output_directory=output_directory, xray_id=self.xray_id)
 
 		self.layer_draft_example = {
 			'conv': {'weight': True, 'output': False, 'grad': False},
@@ -84,11 +92,14 @@ class Xray:
 		are required when taking graphs. Since some procedures can also be done by user (like extracting graph), it
 		prevents recurrent processes
 		"""
+		print('initializinggg')
 		self.prepare_layer_output_draft()
 		self.convert_draft_to_obj()
 		self.add_selector_to_plan()
+		print('aloooooo')
+		self.fm.create_sub_folders([data_module.name for data_module in self.dict_module_output_selector.keys()])
 
-	def take_graph(self, x: torch.Tensor):
+	def take_graph_(self, x: torch.Tensor, batch_num: int = 0):
 		"""
 		Main method which manages other functions etc. to
 			* Get defined layers to inspect
@@ -98,10 +109,75 @@ class Xray:
 			* Save the results properly to be used later
 		:return:
 		"""
-		inter = Interpreter(self.model, layer_name_map=self.layer_name_module_map)
+		inter = Interpreter(self.model, layer_name_map=self.layer_name_module_map, xray_id=self.xray_id, file_manager=self.fm)
 		inter.dict_layer_output_plan = self.dict_layer_output_plan.copy()
 		inter.list_layers_ordered = self.trace_arc.get_core_architecture_list_by_forward()
-		inter.take_graph(x)
+		inter.take_graph(x, batch_num=batch_num)
+
+	def take_graph(self, X: torch.Tensor, batch_num: int = 0):
+
+		modules_to_hook_outputs = [
+			layer for layer in self.trace_arc.get_core_architecture_list_by_forward()
+			if self.dict_layer_output_plan[layer]['output']]
+		modules_to_hook_weights = [
+			layer for layer in self.trace_arc.get_core_architecture_list_by_forward()
+			if self.dict_layer_output_plan[layer]['weight']]
+		# layers_grad = [layer for layer in self.list_layers_ordered if self.dict_layer_output_plan[layer]['grad']]
+
+		unique_modules_to_hook = []
+		module_names_to_hook_output = []
+		module_names_to_hook_weight = []
+
+		for data_module in modules_to_hook_outputs:
+			if data_module.name not in module_names_to_hook_output:
+				module_names_to_hook_output.append(data_module.name)
+			if data_module.module_obj not in unique_modules_to_hook:
+				unique_modules_to_hook.append(data_module.module_obj)
+		for data_module in modules_to_hook_weights:
+			if data_module.name not in module_names_to_hook_weight:
+				module_names_to_hook_weight.append(data_module.name)
+			if data_module.module_obj not in unique_modules_to_hook:
+				unique_modules_to_hook.append(data_module.module_obj)
+
+		hook_handles = []
+		dict_module_outputs = OrderedDict()
+		self.hooked_modules = np.array([])
+
+		with torch.no_grad():
+			def add_forward_hook():
+				def hook(module, input_, output):
+					module_common_name = module.__class__.__name__
+					module_count = len(self.hooked_modules[self.hooked_modules == module_common_name])
+					self.hooked_modules = np.append(self.hooked_modules, module_common_name)
+					module_name = f'{module_common_name}-{module_count}'
+					dict_sub_module_output = {}
+					data_module_ = self.layer_name_module_map[module_name]
+					if module_name in module_names_to_hook_output:
+						tensor_pruned = self.dict_module_output_selector[data_module_]['output'].\
+							make_selection(output.detach())
+						self.fm.save_data(
+							tensor=tensor_pruned, xray_id=self.xray_id, layer_name=data_module_.name,
+							output_type='output', batch_num=batch_num, extension='.pt')
+
+					if module_name in module_names_to_hook_weight:
+						tensor_pruned = self.dict_module_output_selector[data_module_]['weight']. \
+							make_selection(list(module.parameters())[0].data)
+						self.fm.save_data(
+							tensor=tensor_pruned, xray_id=self.xray_id, layer_name=data_module_.name,
+							output_type='weight', batch_num=batch_num, extension='.pt')
+
+				return hook
+
+		self.model.eval()
+		for module in unique_modules_to_hook:
+			hook_handles.append(module.register_forward_hook(add_forward_hook()))
+		self.model(X)
+
+		for i, hook_handle in enumerate(hook_handles):
+			hook_handle.remove()
+
+		if not self.model.training:
+			self.model.train()
 
 	def get_architecture_graph(self):
 		return self.trace_arc.get_core_architecture_graph_by_forward()
@@ -122,75 +198,81 @@ class Xray:
 		}
 
 	def add_selector_to_plan(self):
-		dict_selector_added = self.dict_layer_output_plan.copy()
-		for module in self.dict_layer_output_plan.keys():
+		dict_module_selector = OrderedDict()
+		for module, dict_plan in self.dict_layer_output_plan.items():
+			print('ADD SELECTOR -', module)
+			dict_sub_selector = {}
 			if module.module_type == 'activation':
 				selector_cls = map_module_type_selector[module.parent.module_type]['random']
 			else:
 				selector_cls = map_module_type_selector[module.module_type]['random']
 
-			print(module, module.output_size)
-			dict_selector_added[module]['selector'] = selector_cls(tensor_size=module.output_size)
+			if dict_plan['weight']:
+				if module.module_type == 'activation':
+					dict_sub_selector['weight'] = False
+				else:
+					dict_sub_selector['weight'] = selector_cls(tensor_size=module.weight_size)
+			else:
+				dict_sub_selector['weight'] = False
 
-		self.dict_layer_output_plan = dict_selector_added
+			if dict_plan['output']:
+				dict_sub_selector['output'] = selector_cls(tensor_size=module.output_size)
+			else:
+				dict_sub_selector['output'] = False
 
-	def interpret_user_parameters(self):
-		pass
+			dict_module_selector[module] = dict_sub_selector
 
-	def set_layers_to_inspect(self):
-		if len(self.user_marked_layers_to_inspect) > 0:
-			# todo: list içeriği ayrıca kontrol edilebilir (user_marked_layers_to_inspect).
-			self.layers_to_inspect = self.user_marked_layers_to_inspect
-
-		else:
-			self.trace_arc.get_core_architecture_from_grad_fn()
+		self.dict_module_output_selector = dict_module_selector
+		self.dict_layer_output_plan = dict_module_selector
 
 
 class Interpreter:
-	def __init__(self, model: nn.Module, layer_name_map: OrderedDict):
+	def __init__(self, model: nn.Module, layer_name_map: OrderedDict, xray_id, file_manager):
 		self.model = model
 		self.layer_name_map = layer_name_map.copy()
 		self.dict_layer_output_plan: OrderedDict = OrderedDict()
 		self.layer_output_map: OrderedDict
 		self.list_layers_ordered: list = []
 
+		self.xray_id = xray_id
+		self.fm = file_manager
+
 		self.hooked_modules = np.array([])		# todo: bunun farklı bir kullanımını oluşturmak lazım
 		self.dict_output = {}
 
-	def __set_dict_layer_output(self, dict_layer_plan):
-		if isinstance(dict_layer_plan, OrderedDict):
-			self.dict_layer_output_plan = dict_layer_plan.copy()
-
-	def __set_layer_output_map(self):
-		layer_output_map = OrderedDict()
-		for layer_name, output_dict in self.dict_layer_output_plan.items():
-			layer_output_map[self.layer_name_map[layer_name]]
-
-	def take_graph(self, x: torch.Tensor):
+	def take_graph(self, x: torch.Tensor, batch_num: int = 0):
 		layers_output = [layer for layer in self.list_layers_ordered if self.dict_layer_output_plan[layer]['output']]
 		layers_weight = [layer for layer in self.list_layers_ordered if self.dict_layer_output_plan[layer]['weight']]
-		layers_grad = [layer for layer in self.list_layers_ordered if self.dict_layer_output_plan[layer]['grad']]
+		# layers_grad = [layer for layer in self.list_layers_ordered if self.dict_layer_output_plan[layer]['grad']]
 
 		d_ = self.hook_forward(
 			input_tensor=x,
 			modules_to_hook_outputs=layers_output,
 			modules_to_hook_weights=layers_weight)
 
-		dict_pruned = OrderedDict()
+		dict_output_pruned = OrderedDict()
 		for module, plan in self.dict_layer_output_plan.items():
-			print(module)
+			dict_pruned = {}
+
 			if plan['weight']:
-				tensor_pruned = plan['selector'].make_selection(d_[module]['weight'])
-				dict_pruned[module]['weight'] = tensor_pruned
+				tensor_pruned = plan['weight'].make_selection(d_[module]['weight'])
+				self.fm.save_data(
+					tensor=tensor_pruned, xray_id=self.xray_id, layer_name=module.name,
+					output_type='weight', batch_num=batch_num, extension='.pt')
+
+				dict_pruned['weight'] = tensor_pruned
 
 			if plan['output']:
-				tensor_pruned = plan['selector'].make_selection(d_[module]['output'])
-				dict_pruned[module]['output'] = tensor_pruned
+				tensor_pruned = plan['output'].make_selection(d_[module]['output'])
+				self.fm.save_data(
+					tensor=tensor_pruned, xray_id=self.xray_id, layer_name=module.name,
+					output_type='weight', batch_num=batch_num, extension='.pt')
 
-		print('PRUNEDD')
-		print(dict_pruned)
+				dict_pruned['output'] = tensor_pruned
 
-		return dict_pruned
+			dict_output_pruned[module] = dict_pruned.copy()
+
+		return dict_output_pruned
 
 	def hook_forward(self, input_tensor: torch.Tensor, modules_to_hook_outputs: list, modules_to_hook_weights: list):
 
@@ -220,6 +302,7 @@ class Interpreter:
 					module_count = len(self.hooked_modules[self.hooked_modules == module_common_name])
 					self.hooked_modules = np.append(self.hooked_modules, module_common_name)
 					module_name = f'{module_common_name}-{module_count}'
+					print('FORWARD HOOK -', module_name)
 					dict_sub_module_output = {}
 					if module_name in module_names_to_hook_output:
 						dict_sub_module_output['output'] = output.detach()
@@ -245,13 +328,3 @@ class Interpreter:
 
 		return dict_module_outputs
 
-
-class Grapher:
-	def __init__(self, data_module):
-		self.data_module = data_module
-
-	def take_graph(self):
-		"""
-		pass
-		:return:
-		"""
