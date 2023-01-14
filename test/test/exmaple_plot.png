@@ -1,0 +1,36 @@
+// plot_model
+digraph {
+	graph [rankdir=TB]
+	"Conv2d - 462082" [label="Conv2d - 462082"]
+	"ReLU - 222280" [label="ReLU - 222280"]
+	"Conv2d - 293574" [label="Conv2d - 293574"]
+	"Conv2d - 485536" [label="Conv2d - 485536"]
+	"Tanh - 26633" [label="Tanh - 26633"]
+	"Linear - 195372" [label="Linear - 195372"]
+	"Linear - 644620" [label="Linear - 644620"]
+	"Linear - 856740" [label="Linear - 856740"]
+	"Conv2d - 430866" [label="Conv2d - 430866"]
+	"ReLU - 904532" [label="ReLU - 904532"]
+	"Conv2d - 692594" [label="Conv2d - 692594"]
+	"Conv2d - 30055" [label="Conv2d - 30055"]
+	"Tanh - 37239" [label="Tanh - 37239"]
+	"Linear - 704582" [label="Linear - 704582"]
+	"Linear - 861486" [label="Linear - 861486"]
+	"Linear - 424008" [label="Linear - 424008"]
+	"ReLU - 222280" -> "Conv2d - 462082"
+	"Conv2d - 293574" -> "ReLU - 222280"
+	"Conv2d - 485536" -> "Conv2d - 293574"
+	"Tanh - 26633" -> "Conv2d - 485536"
+	"Linear - 195372" -> "Tanh - 26633"
+	"Linear - 644620" -> "Linear - 195372"
+	"Linear - 856740" -> "Linear - 644620"
+	"Sigmoid - 407840" -> "Linear - 856740"
+	"ReLU - 904532" -> "Conv2d - 430866"
+	"Conv2d - 692594" -> "ReLU - 904532"
+	"Conv2d - 30055" -> "Conv2d - 692594"
+	"Tanh - 37239" -> "Conv2d - 30055"
+	"Linear - 704582" -> "Tanh - 37239"
+	"Linear - 861486" -> "Linear - 704582"
+	"Linear - 424008" -> "Linear - 861486"
+	"Sigmoid - 656199" -> "Linear - 424008"
+}
