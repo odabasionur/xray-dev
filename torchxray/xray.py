@@ -7,6 +7,7 @@ from torch import nn
 from torchxray.inspect import TraceArchitecture
 from torchxray.selection import map_module_type_selector
 from torchxray.file_manager import FileManager
+from torchxray.display import Display
 
 
 class Xray:
@@ -57,6 +58,7 @@ class Xray:
 			output=self.output
 		)
 		self.fm = FileManager(main_output_directory=output_directory, xray_id=self.xray_id)
+		self.display = Display()
 
 		self.layer_draft_example = {
 			'conv': {'weight': True, 'output': False, 'grad': False},
@@ -114,7 +116,7 @@ class Xray:
 		inter.list_layers_ordered = self.trace_arc.get_core_architecture_list_by_forward()
 		inter.take_graph(x, batch_num=batch_num)
 
-	def take_graph(self, X: torch.Tensor, batch_num: int = 0):
+	def take_graph(self, X: torch.Tensor, batch_num: int = 0, show_plot=True):
 
 		modules_to_hook_outputs = [
 			layer for layer in self.trace_arc.get_core_architecture_list_by_forward()
@@ -152,12 +154,26 @@ class Xray:
 					module_name = f'{module_common_name}-{module_count}'
 					dict_sub_module_output = {}
 					data_module_ = self.layer_name_module_map[module_name]
+
 					if module_name in module_names_to_hook_output:
 						tensor_pruned = self.dict_module_output_selector[data_module_]['output'].\
 							make_selection(output.detach())
 						self.fm.save_data(
 							tensor=tensor_pruned, xray_id=self.xray_id, layer_name=data_module_.name,
 							output_type='output', batch_num=batch_num, extension='.pt')
+						if show_plot:
+							if data_module_.module_type == 'activation':
+								module_type = data_module_.parent.module_type
+							else:
+								module_type = data_module_.module_type
+							if module_type == 'conv':
+								self.display.display_filter(
+									tensor=tensor_pruned,
+									title=f'{module_name} - {"x".join([str(s) for s in tensor_pruned.size()])}')
+							elif module_type == 'linear':
+								self.display.display_nodes(
+									tensor=tensor_pruned,
+									title=f'{module_name} - {"x".join([str(s) for s in tensor_pruned.size()])}')
 
 					if module_name in module_names_to_hook_weight:
 						tensor_pruned = self.dict_module_output_selector[data_module_]['weight']. \
@@ -165,7 +181,19 @@ class Xray:
 						self.fm.save_data(
 							tensor=tensor_pruned, xray_id=self.xray_id, layer_name=data_module_.name,
 							output_type='weight', batch_num=batch_num, extension='.pt')
-
+						if show_plot:
+							if data_module_.module_type == 'activation':
+								module_type = data_module_.parent.module_type
+							else:
+								module_type = data_module_.module_type
+							if module_type == 'conv':
+								self.display.display_filter(
+									tensor=tensor_pruned,
+									title=f'{module_name} - {"x".join([str(s) for s in tensor_pruned.size()])}')
+							elif module_type == 'linear':
+								self.display.display_nodes(
+									tensor=tensor_pruned,
+									title=f'{module_name} - {"x".join([str(s) for s in tensor_pruned.size()])}')
 				return hook
 
 		self.model.eval()

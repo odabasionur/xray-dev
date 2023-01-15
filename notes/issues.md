@@ -25,5 +25,7 @@ Hiç mantıklı değil. Datalar büyükse nolcak. bir hook atıldığı anda iş
 
 11. Save sistemini bi elden geçir ya bişey olmadı sanki. Gerçi neresi tam oldu ki
 
-12. 
+12. xraye kayıtlardan şunu aç diyince plotını bastırabilmeli
+
+
 

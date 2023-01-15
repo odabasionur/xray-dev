@@ -1,6 +1,6 @@
 import os
 import json
-from typing import Union
+from typing import Optional
 import torch
 from torch import save
 
@@ -51,10 +51,10 @@ class FileManager:
 		with open(self.output_metadata_path, mode='w+') as f:
 			f.write('')
 
-	def get_data_filename(self, xray_id: str, layer_name, output_type: str, batch_num: Union[int, str], extension='.pt'):
+	def get_data_filename(self, xray_id: str, layer_name, output_type: str, batch_num: int, extension='.pt'):
 		return f'{xray_id}-{layer_name}-{output_type}-{batch_num}{extension}'
 
-	def get_data_path(self, xray_id: str, layer_name: str, output_type: str, batch_num: Union[int, str], extension='.pt'):
+	def get_data_path(self, xray_id: str, layer_name: str, output_type: str, batch_num: int, extension='.pt'):
 		data_filename = self.get_data_filename(
 			xray_id=xray_id, layer_name=layer_name, output_type=output_type, batch_num=batch_num, extension=extension
 		)
@@ -62,7 +62,7 @@ class FileManager:
 		data_path = os.path.join(module_dir, data_filename)
 		return data_path
 
-	def get_data_json(self, xray_id: str, layer_name: str, output_type: str, batch_num: Union[int, str], extension='.pt'):
+	def get_data_json(self, xray_id: str, layer_name: str, output_type: str, batch_num: int, extension='.pt'):
 		data_path = self.get_data_path(
 			xray_id=xray_id, layer_name=layer_name, output_type=output_type, batch_num=batch_num, extension=extension)
 
@@ -79,13 +79,19 @@ class FileManager:
 			metadata_str = json.dumps(metadata)
 			f.write(metadata_str + '\n')
 
+	@staticmethod
+	def read_metadata(path: str):
+		with open(path) as f:
+			metadata_text = f.read()
+		return [json.loads(metadata_line) for metadata_line in metadata_text.split('\n')[:-1]]
+
 	def save_data(
 			self,
 			tensor: torch.Tensor,
 			xray_id: str,
 			layer_name: str,
 			output_type: str,
-			batch_num: Union[int, str],
+			batch_num: int,
 			extension='.pt'):
 
 		json_metadata = self.get_data_json(

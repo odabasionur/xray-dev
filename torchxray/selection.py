@@ -57,6 +57,7 @@ class BaseNodeSelector(BaseDimensionSelector):
 			random_seed=random_seed)
 
 		self.required_dim_num = 1
+		self.max_node = 100*100
 		self.extra_dim_num = len(self.tensor_size) - self.required_dim_num
 
 	def check_dimension_number(self, tensor_size: iter):
@@ -127,6 +128,7 @@ class RandomNodeSelector(BaseNodeSelector):
 		elif extra_dim_num > 0:
 			for extra_dim in range(extra_dim_num):
 				tensor = tensor[self.random_dimensions[extra_dim], :]
+				tensor = tensor[:self.max_node]
 			return tensor
 
 
