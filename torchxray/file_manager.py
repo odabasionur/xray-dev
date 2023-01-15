@@ -24,10 +24,11 @@ class FileManager:
 		self.main_dir = main_output_directory
 		self.xray_id = xray_id
 		self.output_dir = os.path.join(self.main_dir, xray_id)
-		self.output_img_dir = os.path.join(self.output_dir, 'image')
+		self.output_image_dir = os.path.join(self.output_dir, 'image')
 		self.output_metadata_dir = os.path.join(self.output_dir, 'metadata')
 		self.output_metadata_path = os.path.join(self.output_metadata_dir, 'metadata.txt')
-		self.dict_module_dir = {}
+		self.dict_module_data_dir = {}
+		self.dict_module_image_dir = {}
 
 	@staticmethod
 	def create_dir_if_not_exist(directory: str):
@@ -40,13 +41,19 @@ class FileManager:
 
 	def create_sub_folders(self, list_of_modules: list[str]):
 		print('creating sun folders')
-		self.create_dir_if_not_exist(self.output_img_dir)
+		self.create_dir_if_not_exist(self.output_image_dir)
 		self.create_dir_if_not_exist(self.output_metadata_dir)
 		for module_name in list_of_modules:
 			print('creating sub folder for ', module_name)
-			module_dir = os.path.join(self.output_dir, module_name.lower())
-			self.create_dir_if_not_exist(module_dir)
-			self.dict_module_dir[module_name] = module_dir
+
+			module_data_dir = os.path.join(self.output_dir, module_name.lower())
+			module_image_dir = os.path.join(self.output_image_dir, module_name.lower())
+
+			self.create_dir_if_not_exist(module_data_dir)
+			self.create_dir_if_not_exist(module_image_dir)
+
+			self.dict_module_data_dir[module_name] = module_data_dir
+			self.dict_module_image_dir[module_name] = module_image_dir
 
 		with open(self.output_metadata_path, mode='w+') as f:
 			f.write('')
@@ -58,8 +65,17 @@ class FileManager:
 		data_filename = self.get_data_filename(
 			xray_id=xray_id, layer_name=layer_name, output_type=output_type, batch_num=batch_num, extension=extension
 		)
-		module_dir = self.dict_module_dir.get(layer_name, self.output_dir)
+		module_dir = self.dict_module_data_dir.get(layer_name, self.output_dir)
 		data_path = os.path.join(module_dir, data_filename)
+		return data_path
+
+	def get_image_path(self, xray_id: str, layer_name: str, output_type: str, batch_num: int, extension='.pt'):
+		data_filename = self.get_data_filename(
+			xray_id=xray_id, layer_name=layer_name, output_type=output_type, batch_num=batch_num,
+			extension=extension
+		)
+		image_dir = self.dict_module_image_dir.get(layer_name, self.output_dir)
+		data_path = os.path.join(image_dir, data_filename)
 		return data_path
 
 	def get_data_json(self, xray_id: str, layer_name: str, output_type: str, batch_num: int, extension='.pt'):
@@ -99,3 +115,15 @@ class FileManager:
 		save(tensor, json_metadata['data_path'])
 		self.update_metadata(metadata=json_metadata)
 
+	def save_plot(
+			self,
+			plot,
+			xray_id: str,
+			layer_name: str,
+			output_type: str,
+			batch_num: int,
+			extension='.png'):
+
+		image_path = self.get_image_path(
+			xray_id=xray_id, layer_name=layer_name, output_type=output_type, batch_num=batch_num, extension=extension)
+		plot.savefig(image_path)

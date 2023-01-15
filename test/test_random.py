@@ -48,8 +48,8 @@ if __name__ == '__main__':
 	xray = Xray(model=model, input_tensor=x)
 	xray.initialize()
 
-	xray.take_graph(X=x, batch_num=0)
-	xray.take_graph(X=x, batch_num=1)
+	for i in range(3):
+		xray.take_graph(X=torch.randn((1, 32, 32)), batch_num=i*10, show_plot=True, save_plot=True)
 
 	print()
 	# for key in dict_graph_of_arc.keys():

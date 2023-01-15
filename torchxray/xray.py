@@ -94,11 +94,9 @@ class Xray:
 		are required when taking graphs. Since some procedures can also be done by user (like extracting graph), it
 		prevents recurrent processes
 		"""
-		print('initializinggg')
 		self.prepare_layer_output_draft()
 		self.convert_draft_to_obj()
 		self.add_selector_to_plan()
-		print('aloooooo')
 		self.fm.create_sub_folders([data_module.name for data_module in self.dict_module_output_selector.keys()])
 
 	def take_graph_(self, x: torch.Tensor, batch_num: int = 0):
@@ -116,7 +114,7 @@ class Xray:
 		inter.list_layers_ordered = self.trace_arc.get_core_architecture_list_by_forward()
 		inter.take_graph(x, batch_num=batch_num)
 
-	def take_graph(self, X: torch.Tensor, batch_num: int = 0, show_plot=True):
+	def take_graph(self, X: torch.Tensor, batch_num: int = 0, show_plot=True, save_plot=False):
 
 		modules_to_hook_outputs = [
 			layer for layer in self.trace_arc.get_core_architecture_list_by_forward()
@@ -161,19 +159,37 @@ class Xray:
 						self.fm.save_data(
 							tensor=tensor_pruned, xray_id=self.xray_id, layer_name=data_module_.name,
 							output_type='output', batch_num=batch_num, extension='.pt')
-						if show_plot:
+						if show_plot | save_plot:
 							if data_module_.module_type == 'activation':
 								module_type = data_module_.parent.module_type
 							else:
 								module_type = data_module_.module_type
+
+							if save_plot:
+								image_path = self.fm.get_image_path(
+									xray_id=self.xray_id, layer_name=data_module_.name,
+									output_type='weight', batch_num=batch_num, extension='.png')
+							else:
+								image_path = None
+
 							if module_type == 'conv':
 								self.display.display_filter(
 									tensor=tensor_pruned,
-									title=f'{module_name} - {"x".join([str(s) for s in tensor_pruned.size()])}')
+									title=
+									f'{module_name} - Batch: {batch_num} -'
+									f' {"x".join([str(s) for s in tensor_pruned.size()])}',
+									show_plot=show_plot,
+									save_plot=save_plot,
+									path=image_path)
 							elif module_type == 'linear':
 								self.display.display_nodes(
 									tensor=tensor_pruned,
-									title=f'{module_name} - {"x".join([str(s) for s in tensor_pruned.size()])}')
+									title=
+									f'{module_name} - Batch: {batch_num} -'
+									f' {"x".join([str(s) for s in tensor_pruned.size()])}',
+									show_plot=show_plot,
+									save_plot=save_plot,
+									path=image_path)
 
 					if module_name in module_names_to_hook_weight:
 						tensor_pruned = self.dict_module_output_selector[data_module_]['weight']. \
@@ -181,19 +197,38 @@ class Xray:
 						self.fm.save_data(
 							tensor=tensor_pruned, xray_id=self.xray_id, layer_name=data_module_.name,
 							output_type='weight', batch_num=batch_num, extension='.pt')
-						if show_plot:
+						if show_plot | save_plot:
 							if data_module_.module_type == 'activation':
 								module_type = data_module_.parent.module_type
 							else:
 								module_type = data_module_.module_type
+
+							if save_plot:
+								image_path = self.fm.get_image_path(
+									xray_id=self.xray_id, layer_name=data_module_.name,
+									output_type='weight', batch_num=batch_num, extension='.png')
+							else:
+								image_path = None
+
 							if module_type == 'conv':
 								self.display.display_filter(
 									tensor=tensor_pruned,
-									title=f'{module_name} - {"x".join([str(s) for s in tensor_pruned.size()])}')
+									title=
+									f'{module_name} - Batch: {batch_num} -'
+									f' {"x".join([str(s) for s in tensor_pruned.size()])}',
+									show_plot=show_plot,
+									save_plot=save_plot,
+									path=image_path)
 							elif module_type == 'linear':
 								self.display.display_nodes(
 									tensor=tensor_pruned,
-									title=f'{module_name} - {"x".join([str(s) for s in tensor_pruned.size()])}')
+									title=
+									f'{module_name} - Batch: {batch_num} -'
+									f' {"x".join([str(s) for s in tensor_pruned.size()])}',
+									show_plot=show_plot,
+									save_plot=save_plot,
+									path=image_path)
+
 				return hook
 
 		self.model.eval()
@@ -228,7 +263,6 @@ class Xray:
 	def add_selector_to_plan(self):
 		dict_module_selector = OrderedDict()
 		for module, dict_plan in self.dict_layer_output_plan.items():
-			print('ADD SELECTOR -', module)
 			dict_sub_selector = {}
 			if module.module_type == 'activation':
 				selector_cls = map_module_type_selector[module.parent.module_type]['random']
@@ -330,7 +364,7 @@ class Interpreter:
 					module_count = len(self.hooked_modules[self.hooked_modules == module_common_name])
 					self.hooked_modules = np.append(self.hooked_modules, module_common_name)
 					module_name = f'{module_common_name}-{module_count}'
-					print('FORWARD HOOK -', module_name)
+
 					dict_sub_module_output = {}
 					if module_name in module_names_to_hook_output:
 						dict_sub_module_output['output'] = output.detach()
