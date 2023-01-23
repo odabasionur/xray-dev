@@ -104,22 +104,22 @@ for epoch in range(10):  # loop over the dataset multiple times
 
 ### Simple architecture plot drawn by xray
 <p align="center">
-  <img src="./static/model_architecture.png" width=130>
+  <img src="./static/model_architecture.png?raw=True" width=130>
 </p>
 
 ## Outputs
 ###### Convolutional Kernel Weights
 <p align="left">
-  <img src="./static/ref-3/Conv2d-0-weight-7788.png" width=200 >
-  <img src="./static/ref-3/Conv2d-1-weight-7788.png" width=200 >
-  <img src="./static/ref-3/Conv2d-2-weight-7788.png" width=200 >
+  <img src="./static/ref-3/Conv2d-0-weight-7788.png?raw=True" width=200 >
+  <img src="./static/ref-3/Conv2d-1-weight-7788.png?raw=True" width=200 >
+  <img src="./static/ref-3/Conv2d-2-weight-7788.png?raw=True" width=200 >
 </p>
 
 ###### Linear Kernel Weights
 <p align="left">
-  <img src="./static/ref-3/Linear-0-weight-7788.png" width=200 >
-  <img src="./static/ref-3/Linear-1-weight-7788.png" width=200 >
-  <img src="./static/ref-3/Linear-2-weight-7788.png" width=200 >
+  <img src="./static/ref-3/Linear-0-weight-7788.png?raw=True" width=200 >
+  <img src="./static/ref-3/Linear-1-weight-7788.png?raw=True" width=200 >
+  <img src="./static/ref-3/Linear-2-weight-7788.png?raw=True" width=200 >
 </p>
 
 
@@ -132,8 +132,8 @@ for epoch in range(10):  # loop over the dataset multiple times
 ###### Convolutional layer's outputs
 <p align="left">
   <img src="./static/ref-3/cat-relu-0-gif.gif" width=200 >
-  <img src="./static/ref-3/cat-relu-1-gif.gif" width=200 >
-  <img src="./static/ref-3/cat-relu-2-gif.gif" width=200 >
+  <img src="./static/ref-3/cat-relu-1-gif.gif?raw=True" width=200 >
+  <img src="./static/ref-3/cat-relu-2-gif.gif?raw=True" width=200 >
 </p>
 
 ### Example-2
@@ -143,8 +143,8 @@ for epoch in range(10):  # loop over the dataset multiple times
 
 ###### Convolutional layer's outputs
 <p align="left">
-  <img src="./static/ref-8/dog-relu-0-gif.gif" width=200  >
-  <img src="./static/ref-8/dog-relu-1-gif.gif" width=200  >
-  <img src="./static/ref-8/dog-relu-2-gif.gif" width=200  >
+  <img src="./static/ref-8/dog-relu-0-gif.gif?raw=True" width=200  >
+  <img src="./static/ref-8/dog-relu-1-gif.gif?raw=True" width=200  >
+  <img src="./static/ref-8/dog-relu-2-gif.gif?raw=True" width=200  >
 </p>
 
