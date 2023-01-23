@@ -143,8 +143,8 @@ for epoch in range(10):  # loop over the dataset multiple times
 
 ###### Convolutional layer's outputs
 <p align="left">
-  +<img src="./static/ref-8/dog-relu-0-gif.gif?raw=true" width="200px">
-  +<img src="./static/ref-8/dog-relu-1-gif.gif?raw=true" width="200px">
-  +<img src="./static/ref-8/dog-relu-2-gif.gif?raw=true" width="200px">
+  <img src="./static/ref-8/dog-relu-0-gif.gif?raw=true" width="200px">
+  <img src="./static/ref-8/dog-relu-1-gif.gif?raw=true" width="200px">
+  <img src="./static/ref-8/dog-relu-2-gif.gif?raw=true" width="200px">
 </p>
 

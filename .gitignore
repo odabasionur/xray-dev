@@ -6,8 +6,6 @@
 ./test/xray_outputs/*
 ./tahta/*
 ./data/*
-*.png
-*.gif
 
 
 # Byte-compiled / optimized / DLL files
