@@ -1,3 +1,4 @@
+import os
 import uuid
 from collections import OrderedDict
 from typing import Union
@@ -21,7 +22,9 @@ class Xray:
 			take_graph_of_activations: bool = True,
 			take_graph_of_grad: bool = False,
 			dont_create_folder: bool = False,
-			output_directory: str = r'./xray_outputs/',
+			main_output_directory: str = r'./xray_outputs/',
+			run_name: str = None,
+			xray_id: str = None,
 			verbose: int = 0,
 	):
 		"""
@@ -45,8 +48,7 @@ class Xray:
 		self.output = output
 		self.validate_input_or_output(input_tensor=input_tensor, input_size=input_size, output=output)
 		self.dont_create_folder = dont_create_folder
-		self.xray_id = uuid.uuid4().__str__().split('-')[-1]
-
+		self.xray_id = xray_id if isinstance(xray_id, str) else uuid.uuid4().__str__().split('-')[-1]
 		self.user_marked_layers_to_inspect = layer_list_to_inspect  # Defined by user
 		self.layers_to_inspect = []  # ['conv1', 'conv2', 'fc1']		# Defined by user if possible else by TraceArchitecture
 
@@ -57,21 +59,25 @@ class Xray:
 			input_size=input_size,
 			output=self.output
 		)
-		self.fm = FileManager(main_output_directory=output_directory, xray_id=self.xray_id)
+		self.fm = FileManager(main_output_directory=main_output_directory, xray_id=self.xray_id)
 		self.display = Display()
 
 		self.layer_draft_example = {
 			'conv': {'weight': True, 'output': False, 'grad': False},
-			'linear': {'weight': True, 'output': False, 'grad': False},
+			'pooling': {'weight': False, 'output': False, 'grad': False},
+			'linear': {'weight': False, 'output': False, 'grad': False},
 			'activation': {'weight': False, 'output': True, 'grad': False},
 			'unknown': {'weight': False, 'output': False, 'grad': False},
 		}
+
 		self.dict_layer_output_draft: dict = {}
 		self.layer_name_module_map = OrderedDict()
 		self.dict_layer_output_plan: dict = {}
 		# **Pay attention not miss get the model in train mode!**
 		if not self.model.training:
 			self.model.train()
+
+		self.prepare_layer_output_draft()
 
 	def validate_input_or_output(self, input_tensor, input_size, output):
 		if isinstance(input_tensor, torch.Tensor):
@@ -94,7 +100,6 @@ class Xray:
 		are required when taking graphs. Since some procedures can also be done by user (like extracting graph), it
 		prevents recurrent processes
 		"""
-		self.prepare_layer_output_draft()
 		self.convert_draft_to_obj()
 		self.add_selector_to_plan()
 		self.fm.create_sub_folders([data_module.name for data_module in self.dict_module_output_selector.keys()])
@@ -172,7 +177,7 @@ class Xray:
 							else:
 								image_path = None
 
-							if module_type == 'conv':
+							if module_type in ['conv', 'pooling', 'batchnorm']:
 								self.display.display_filter(
 									tensor=tensor_pruned,
 									title=
@@ -242,6 +247,40 @@ class Xray:
 		if not self.model.training:
 			self.model.train()
 
+	def get_saved_tensors(self, module_name: str):
+		pass
+
+	def display_saved_tensor(
+			self,
+			path_tensor: str,
+			title: str = '',
+			show_plot: bool = True,
+			save_plot: bool = False,
+			path: str = None,
+			cmap: str = 'inferno'):
+
+		tensor = torch.load(path_tensor)
+		# todo: decorator ekle module name için çok yerde yerde gerekiyor
+		self.display.display_filter(
+			tensor=tensor, title=title, show_plot=show_plot, save_plot=save_plot, path=path, cmap=cmap
+		)
+
+	def create_gif(self, module_name: str):
+		"""
+
+		module_name: str
+		"""
+		if isinstance(module_name, str):
+			if module_name == 'all':
+				for module, directory in self.fm.dict_module_image_dir.items():
+					self.display.create_gif(path=directory, gif_filename=f'{module.name}-gif')
+			else:
+				module = self.layer_name_module_map[module_name]
+				module_image_dir = self.fm.dict_module_image_dir[module]
+				self.display.create_gif(path=module_image_dir, gif_filename=f'{module_name}-gif')
+		else:
+			raise TypeError(f'module_name must be str, not {type(module_name)}')
+
 	def get_architecture_graph(self):
 		return self.trace_arc.get_core_architecture_graph_by_forward()
 
@@ -264,6 +303,7 @@ class Xray:
 		dict_module_selector = OrderedDict()
 		for module, dict_plan in self.dict_layer_output_plan.items():
 			dict_sub_selector = {}
+			print(module.name)
 			if module.module_type == 'activation':
 				selector_cls = map_module_type_selector[module.parent.module_type]['random']
 			else:

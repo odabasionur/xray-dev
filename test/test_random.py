@@ -14,19 +14,21 @@ if __name__ == '__main__':
 			self.relu = nn.ReLU()
 			self.tanh = nn.Tanh()
 			self.sigmoid = nn.Sigmoid()
+
+			self.max_pool = nn.MaxPool2d(2, 2)
 			self.cl1 = nn.Conv2d(1, 3, 3)
 			self.cl2 = nn.Conv2d(3, 6, 3)
 			self.cl3 = nn.Conv2d(6, 10, 5)
 
 			self.flatten = torch.flatten
-			self.fc1 = nn.Linear(24 * 24 * 10, 100)
+			self.fc1 = nn.Linear(12 * 12 * 10, 100)
 			self.fc2 = nn.Linear(100, 100)
 			self.fc3 = nn.Linear(100, 1)
 
 		def forward(self, x):
 			x = self.relu(self.cl1(x))
 			x = self.relu(self.cl2(x))
-			x = self.tanh(self.cl3(x))
+			x = self.tanh(self.max_pool(self.cl3(x)))
 
 			x = self.flatten(x, 0)
 

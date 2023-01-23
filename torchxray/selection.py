@@ -136,10 +136,26 @@ map_module_type_selector = {
 	'conv': {
 		'random': RandomFilterSelector
 	},
+	'pooling': {
+		'random': RandomFilterSelector
+	},
+	'batchnorm': {
+		'random': RandomFilterSelector
+	},
+	'dropout': {
+		'random': RandomFilterSelector
+	},
 	'linear': {
 		'random': RandomNodeSelector
-	}
+	},
+	'flatten': {
+		'random': RandomNodeSelector
+	},
 }
+
+
+def mathc():
+	pass
 
 
 if __name__ == '__main__':

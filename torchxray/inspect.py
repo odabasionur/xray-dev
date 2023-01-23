@@ -50,7 +50,6 @@ class DataModule:
 		return f'{self.name}'
 
 
-
 class TraceArchitecture:
 	def __init__(
 			self,
