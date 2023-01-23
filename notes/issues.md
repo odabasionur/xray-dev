@@ -31,5 +31,6 @@ Hiç mantıklı değil. Datalar büyükse nolcak. bir hook atıldığı anda iş
 
 14. xraye kayıtlardan şunu aç diyince plotını bastırabilmeli
 
+15. stabil bir model eğit
 
 
