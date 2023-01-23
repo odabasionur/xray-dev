@@ -10,8 +10,6 @@ custom models. The only assumption is the layers desired to be inspected, are mu
 
 ###### Defining a custom model as usual
 ```
-
-
 class ExampleNetwork(nn.Module):
 	def __init__(self):
 		super(ExampleNetwork, self).__init__()
@@ -102,6 +100,12 @@ for epoch in range(10):  # loop over the dataset multiple times
             # ** The only one line required to save/show plots  
             xray.take_graph(x, batch_num=epoch * len(trainloader) + i, show_plot=False, save_plot=True)
 ```
+
+
+### Simple architecture plot drawn by xray
+<p align="center">
+  <img src="./static/model_architecture.png" width=130>
+</p>
 
 ## Outputs
 ###### Convolutional Kernel Weights

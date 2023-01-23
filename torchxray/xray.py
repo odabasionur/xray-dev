@@ -1,7 +1,5 @@
-import os
 import uuid
 from collections import OrderedDict
-from typing import Union
 import numpy as np
 import torch
 from torch import nn
@@ -19,27 +17,44 @@ class Xray:
 			input_size: tuple = None,
 			output: torch.Tensor = None,
 			layer_list_to_inspect: list[str] = None,
-			take_graph_of_activations: bool = True,
-			take_graph_of_grad: bool = False,
 			dont_create_folder: bool = False,
 			main_output_directory: str = r'./xray_outputs/',
-			run_name: str = None,
 			xray_id: str = None,
-			verbose: int = 0,
 	):
 		"""
-		:attr dict_layer_output_draft:
-		{
-			'conv2d-0': {'weight': True, 'output': False, 'grad': False},
-			'relu-0': {'weight': False, 'output': True, 'grad': False},
-			'conv2d-1': {'weight': True, 'output': False, 'grad': False},
-			'relu-1': {'weight': False, 'output': True, 'grad': False},
-			'flatten': {'weight': False, 'output': False, 'grad': False},
-			'linear-0': {'weight': True, 'output': False, 'grad': False},
-			'relu-2': {'weight': False, 'output': True, 'grad': False},
-			'linear-1': {'weight': True, 'output': False, 'grad': False},
-			'sigmoid-0': {'weight': False, 'output': True, 'grad': False},
-		}
+		Main class of the library. It manages functionality in the library and help user to get required outputs.
+
+		model: nn.Module
+			The model desired to inspect
+
+		input_tensor: torch.Tensor
+			An example input tensor
+			input_tensor or input_size must be given
+
+		input_size: tuple
+			Tuple of size of input which model is expecting. This is processed if and only if input_tensor is not given.
+			input_tensor or input_size must be given
+
+		output: torch.Tensor
+			This parameter can be given instead of input_tensor and input_size. However, it is not enough to take
+			graphs of layer's weights and outputs. If output is given only, then what xray can do is extracting
+			architecture only.
+
+		layer_list_to_inspect: list
+			list of layers to inspect outputs
+
+		dont_create_folder: bool
+			Xray handle file management to save tensors and output images. But if disk usage is not desired, then this
+			parameter need to be True.
+
+		main_output_directory: str
+			Where xray should save the outputs (tensors and output images)
+
+		xray_id: str
+			When Xray is initialized, it generates an id. This id is also used to create a space in disk and save
+			results there. What you need is to save files specifically in a folder. This is the right place to give
+			folder name. No need to create folder before.
+
 		"""
 
 		self.model = model

@@ -131,10 +131,10 @@ class ReferenceNetwork(nn.Module):
 
 		x = self.flatten(x)
 		x = self.relu(self.linear1(x))
-		# x = self.dropout15(x)
+		x = self.dropout15(x)
 		#
 		x = self.relu(self.linear2(x))
-		# x = self.dropout10(x)
+		x = self.dropout10(x)
 		#
 		x = self.linear3(x)
 
@@ -150,7 +150,7 @@ def trainer(model, optimizer, loss_func, trainloader):
 	x = image_dog.resize(1, 3, 224, 224).to(device)
 	print('x size', x.size())
 
-	xray = Xray(model, input_tensor=x, xray_id='reference-9-dog3-nodropout')
+	xray = Xray(model, input_tensor=x, xray_id='reference-x')
 	xray.initialize()
 	print(xray.dict_layer_output_draft)
 
