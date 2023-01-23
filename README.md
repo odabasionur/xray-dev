@@ -110,41 +110,41 @@ for epoch in range(10):  # loop over the dataset multiple times
 ## Outputs
 ###### Convolutional Kernel Weights
 <p align="left">
-  <img src="./static/ref-3/Conv2d-0-weight-7788.png" width=200 title="asd text" alt=alt>
-  <img src="./static/ref-3/Conv2d-1-weight-7788.png" width=200 title="asd text" alt=alt>
-  <img src="./static/ref-3/Conv2d-2-weight-7788.png" width=200 title="asd text" alt=alt>
+  <img src="./static/ref-3/Conv2d-0-weight-7788.png" width=200 >
+  <img src="./static/ref-3/Conv2d-1-weight-7788.png" width=200 >
+  <img src="./static/ref-3/Conv2d-2-weight-7788.png" width=200 >
 </p>
 
 ###### Linear Kernel Weights
 <p align="left">
-  <img src="./static/ref-3/Linear-0-weight-7788.png" width=200 title="asd text" alt=alt>
-  <img src="./static/ref-3/Linear-1-weight-7788.png" width=200 title="asd text" alt=alt>
-  <img src="./static/ref-3/Linear-2-weight-7788.png" width=200 title="asd text" alt=alt>
+  <img src="./static/ref-3/Linear-0-weight-7788.png" width=200 >
+  <img src="./static/ref-3/Linear-1-weight-7788.png" width=200 >
+  <img src="./static/ref-3/Linear-2-weight-7788.png" width=200 >
 </p>
 
 
 ### Example-1
 [//]: # (![alt_text]&#40;./static/reference_image_cat.jpg&#41;)
 <p align="left">
-  <img src="./static/ref-3/cat-reference-image.jpg" width=200 title="asd text" alt=alt>
+  <img src="./static/ref-3/cat-reference-image.jpg" width=200 >
 </p>
 
 ###### Convolutional layer's outputs
 <p align="left">
-  <img src="./static/ref-3/cat-relu-0-gif.gif" width=200 title="asd text" alt=alt>
-  <img src="./static/ref-3/cat-relu-1-gif.gif" width=200 title="asd text" alt=alt>
-  <img src="./static/ref-3/cat-relu-2-gif.gif" width=200 title="asd text" alt=alt>
+  <img src="./static/ref-3/cat-relu-0-gif.gif" width=200 >
+  <img src="./static/ref-3/cat-relu-1-gif.gif" width=200 >
+  <img src="./static/ref-3/cat-relu-2-gif.gif" width=200 >
 </p>
 
 ### Example-2
 <p align="left">
-  <img src="./static/ref-8/dog-reference-image.jpg" width=200 title="asd text" alt=alt>
+  <img src="./static/ref-8/dog-reference-image.jpg" width=200  >
 </p>
 
 ###### Convolutional layer's outputs
 <p align="left">
-  <img src="./static/ref-8/dog-relu-0-gif.gif" width=200 title="asd text" alt=alt>
-  <img src="./static/ref-8/dog-relu-1-gif.gif" width=200 title="asd text" alt=alt>
-  <img src="./static/ref-8/dog-relu-2-gif.gif" width=200 title="asd text" alt=alt>
+  <img src="./static/ref-8/dog-relu-0-gif.gif" width=200  >
+  <img src="./static/ref-8/dog-relu-1-gif.gif" width=200  >
+  <img src="./static/ref-8/dog-relu-2-gif.gif" width=200  >
 </p>
 
